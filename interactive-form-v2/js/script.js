@@ -1,5 +1,7 @@
 // Norman Lew
 
+// Script for the online form to register for technology events in index.html
+
 
 const form = document.querySelector('form');
 const name = document.getElementById('name');
@@ -7,12 +9,12 @@ const email = document.getElementById('mail');
 const activities = document.querySelector('.activities');
 const activitiesList = document.querySelectorAll('.activities input');
 const activitiesLegend = activities.firstElementChild;
-const registrationError = document.createElement('p');
-registrationError.textContent = 'You must register for at least one activity';
+const registrationError = createNewElement('p', 'textContent', 'You must register for at least one activity');
 registrationError.style.color = 'red';
 activitiesLegend.appendChild(registrationError);
 registrationError.hidden = 'true'
 
+// Make credit card payment the default payment method
 const payment = document.getElementById('payment');
 const paymentOptions = document.querySelectorAll('#payment option');
 paymentOptions[0].disabled = true;
@@ -24,8 +26,7 @@ name.focus();
 // Add additional default option to the color selection that
 // prompts user to select a theme
 const color = document.getElementById('color');
-const selectThemeFirst = document.createElement('option');
-selectThemeFirst.value = 'selectThemeFirst';
+const selectThemeFirst = createNewElement('option', 'value', 'selectThemeFirst');
 selectThemeFirst.textContent = 'Please select a T-shirt theme';
 color.insertBefore(selectThemeFirst, color.firstElementChild);
 const colorOptions = document.querySelectorAll('#color option');
@@ -41,6 +42,26 @@ for (let i = 1; i < colorOptions.length; i++) {
 }
 
 hideAllColors();
+
+// This function creates a new element of 'type' 
+// and sets the 'attribute' of that element to 'text'
+function createNewElement(type, attribute, text) {
+    const element = document.createElement(type);
+    element[attribute] = text;
+    return element;
+ }
+
+ // This function compares an element's value to a regex
+ // expression
+ const regexValidator = (regex, element) => {
+    if (!regex.test(parseInt(element.value))) {
+        element.style.borderColor = 'red';
+        return false;
+    } else {
+        element.style.borderColor = 'white';
+        return true;
+    }
+ }
 
 // Helper function to validate name input.  The name field cannot be blank
 const nameValidator = () => {
@@ -84,49 +105,28 @@ const registrationValidator = ()  => {
 // is entered correctly
 const creditCardValidator = () => {
     const creditCardNumber = document.getElementById('cc-num');
-    let regex = /^\d{13,16}$/;
-    let creditInfoIsCorrect = true;
-
-    if (!regex.test(parseInt(creditCardNumber.value))) {
-        creditCardNumber.style.borderColor = 'red';
-        creditInfoIsCorrect = false;
-    } else {
-        creditCardNumber.style.borderColor = 'white';
-    }
-
     const zip = document.getElementById('zip');
-    regex = /^\d{5}$/;
-    if (!regex.test(parseInt(zip.value))) {
-        zip.style.borderColor = 'red';
-        creditInfoIsCorrect = false;
-    }
-    else {
-        zip.style.borderColor = 'white';
-    }
-
     const cvv = document.getElementById('cvv');
-    regex = /^\d{3}$/;
-    if (!regex.test(parseInt(cvv.value))) {
-        cvv.style.borderColor = 'red';
-        creditInfoIsCorrect = false;
-    }
-    else {
-        cvv.style.borderColor = 'white';
-    }
+    let regex = /^\d{13,16}$/;
+    let regex2 = /^\d{5}$/;
+    let regex3 = /^\d{3}$/;
 
-    return creditInfoIsCorrect;
+    let creditCardNumberIsValid = regexValidator(regex, creditCardNumber);
+    let zipIsValid = regexValidator(regex2, zip);
+    let cvvIsValid = regexValidator(regex3, cvv);
+
+    return (creditCardNumberIsValid || zipIsValid || cvvIsValid);
 }
 
 
-const chosenJob = document.getElementById('title');
-const otherJob = document.getElementById('other-title');
-otherJob.style.display='none';
+
 // Create an event listener for the job role drop-down menu
 // Only display the text field for 'other' job role if none of the available job roles
 // in the drop-down menu match the user's job role
+const chosenJob = document.getElementById('title');
+const otherJob = document.getElementById('other-title');
+otherJob.style.display='none';
 chosenJob.addEventListener('change', (e) => {
-    console.log(e.target);
-    console.log(e.target.value);
     if (e.target.value === 'other') {
         if (otherJob.style.display === 'none') {
             otherJob.style.display = 'block';
@@ -177,12 +177,10 @@ design.addEventListener('change', (e) => {
 // Only allow the user to register for activities that do not overlap during the day.  
 // As the user selects activities, keep and display a running total of the cost.
 let totalCost = 0;
-const costBox = document.createElement('output');
-costBox.id = 'cost';
+const costBox = createNewElement('output', 'id', 'cost');
 costBox.name = 'cost'
 costBox.type = 'text';
-const labelForCostBox = document.createElement('label');
-labelForCostBox.for = 'cost';
+const labelForCostBox = createNewElement('label', 'for', 'cost');
 labelForCostBox.textContent = 'Total Cost: ' ;
 activities.appendChild(labelForCostBox);
 activities.appendChild(costBox);
@@ -236,28 +234,34 @@ payment.addEventListener('change', (e) => {
     if (method === paymentOptions[1].value) {
         creditCardDiv.hidden = false;
     }
-    if (method === paymentOptions[2].value) {
-        console.log(paypalDiv);
+    else if (method === paymentOptions[2].value) {
         paypalDiv.hidden = false;
-        console.log(paypalDiv.firstElementChild);
     }
-    if (method === paymentOptions[3].value) {
-        console.log(bitcoinDiv);
+    else if (method === paymentOptions[3].value) {
         bitcoinDiv.hidden = false;
-        console.log(bitcoinDiv.firstElementChild);
     }
 });
 
+// When registration form is submitted, make sure all information is filled
+// in correctly
 form.addEventListener('submit', (e) =>{
-    nameValidator();
-    emailValidator();
-    registrationValidator();
+    if (!nameValidator()) { 
+        e.preventDefault();
+    }
+
+    if (!emailValidator()) { 
+        e.preventDefault();
+    }
+
+    if (!registrationValidator()) { 
+        e.preventDefault();
+    }
 
     if (payment.options[payment.selectedIndex].value === 'credit card') {
-        creditCardValidator();
+        if (!creditCardValidator()) {
+            e.preventDefault();
+        }
     }
-    
-    e.preventDefault();
 });
 
 
