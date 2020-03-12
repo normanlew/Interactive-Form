@@ -7,7 +7,7 @@ const email = document.getElementById('mail');
 const activities = document.querySelector('.activities');
 const activitiesList = document.querySelectorAll('.activities input');
 const activitiesLegend = activities.firstElementChild;
-const registrationError = document.querySelector('p');
+const registrationError = document.createElement('p');
 registrationError.textContent = 'You must register for at least one activity';
 registrationError.style.color = 'red';
 activitiesLegend.appendChild(registrationError);
