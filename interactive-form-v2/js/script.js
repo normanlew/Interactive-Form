@@ -6,13 +6,30 @@
 const form = document.querySelector('form');
 const name = document.getElementById('name');
 const email = document.getElementById('mail');
+
+const paypalDiv = document.getElementById('paypal');
+const bitcoinDiv = document.getElementById('bitcoin');
+
 const activities = document.querySelector('.activities');
 const activitiesList = document.querySelectorAll('.activities input');
 const activitiesLegend = activities.firstElementChild;
 const registrationError = createNewElement('p', 'textContent', 'You must register for at least one activity');
 registrationError.style.color = 'red';
 activitiesLegend.appendChild(registrationError);
-registrationError.hidden = 'true'
+registrationError.hidden = 'true';
+
+const creditCardError = document.createElement('p');
+const creditCardDiv = document.getElementById('credit-card');
+const creditCardFirstSubDiv = creditCardDiv.firstElementChild;
+const cvvDiv = creditCardDiv.children[2];
+const cvvError = createNewElement('p', 'textContent', 'CVV must be 3 digits');
+cvvDiv.appendChild(cvvError);
+cvvError.style.color = 'red';
+cvvError.hidden = true;
+const cvv = document.getElementById('cvv');
+creditCardFirstSubDiv.appendChild(creditCardError);
+creditCardError.style.color = 'red';
+creditCardError.hidden = true;
 
 // Make credit card payment the default payment method
 const payment = document.getElementById('payment');
@@ -24,7 +41,7 @@ paymentOptions[1].selected = true;
 name.focus();
 
 // Add additional default option to the color selection that
-// prompts user to select a theme
+// prompts user to select a theme.
 const color = document.getElementById('color');
 const selectThemeFirst = createNewElement('option', 'value', 'selectThemeFirst');
 selectThemeFirst.textContent = 'Please select a T-shirt theme';
@@ -32,6 +49,11 @@ color.insertBefore(selectThemeFirst, color.firstElementChild);
 const colorOptions = document.querySelectorAll('#color option');
 colorOptions[0].selected = true;
 colorOptions[0].disabled = true;
+
+// Upon page loading or refresh, hide the color drop-down 
+// menu
+const colorDiv = document.getElementById('colors-js-puns');
+colorDiv.hidden = true;
 
 // function that hides all color options in color selection
 // drop down menu
@@ -41,6 +63,7 @@ for (let i = 1; i < colorOptions.length; i++) {
     }
 }
 
+// Hide all color options for t-shirts initially
 hideAllColors();
 
 // This function creates a new element of 'type' 
@@ -54,7 +77,7 @@ function createNewElement(type, attribute, text) {
  // This function compares an element's value to a regex
  // expression
  const regexValidator = (regex, element) => {
-    if (!regex.test(parseInt(element.value))) {
+    if (!regex.test((element.value))) {
         element.style.borderColor = 'red';
         return false;
     } else {
@@ -106,17 +129,44 @@ const registrationValidator = ()  => {
 const creditCardValidator = () => {
     const creditCardNumber = document.getElementById('cc-num');
     const zip = document.getElementById('zip');
-    const cvv = document.getElementById('cvv');
     let regex = /^\d{13,16}$/;
     let regex2 = /^\d{5}$/;
     let regex3 = /^\d{3}$/;
+    let regex4 = /^$/;
 
-    let creditCardNumberIsValid = regexValidator(regex, creditCardNumber);
     let zipIsValid = regexValidator(regex2, zip);
     let cvvIsValid = regexValidator(regex3, cvv);
 
-    return (creditCardNumberIsValid || zipIsValid || cvvIsValid);
+    let noCreditCardEntered = regexValidator(regex4, creditCardNumber);
+    let creditCardNumberLengthIsRight = regexValidator(regex, creditCardNumber);
+
+    if (noCreditCardEntered) {
+        creditCardError.textContent = "Please enter a credit card number";
+        creditCardError.hidden = false;
+        return false;
+    }
+    else if (!creditCardNumberLengthIsRight) {
+        creditCardError.textContent = "Please enter a number that is between 13 and 16 digits long";
+        creditCardError.hidden = false;
+        return false;
+    }
+    else {
+        creditCardError.hidden = true;
+    }
+    return (zipIsValid && cvvIsValid);
 }
+
+// This is the listener for the div containing the cvv.
+// It provides real-time error messages
+cvvDiv.addEventListener('keyup', (e) => {
+    const regex = /\d{3}/;
+    if (!regex.test(cvv.value)) {
+        cvvError.hidden = false;
+    }
+    else {
+        cvvError.hidden = true;
+    }
+});
 
 
 
@@ -146,6 +196,7 @@ design.addEventListener('change', (e) => {
     hideAllColors();
     const theTheme = e.target.value;
     if(theTheme === 'js puns') {
+        colorDiv.hidden = false;
         for (let i = 1; i <= 3; i++) {
             colorOptions[i].hidden = false;
             colorOptions[0].hidden = true;
@@ -157,6 +208,7 @@ design.addEventListener('change', (e) => {
         }
     }
     else if(theTheme === 'heart js') {
+        colorDiv.hidden = false;
         for (let i = 1; i <= 3; i++) {
             colorOptions[i].hidden = true;
             colorOptions[i].selected = false;
@@ -169,8 +221,13 @@ design.addEventListener('change', (e) => {
         }
     }
     else {
-        selectThemeFirst.hidden = false;
-        colorOptions[0].selected = true;
+        colorDiv.hidden = true;
+
+        // If instead you want to always show the color selection menu regardless if a
+        // design is selected, uncomment out the code below and, comment out all 
+        // colorDiv settings in the code
+        // selectThemeFirst.hidden = false;
+        // colorOptions[0].selected = true;
     }
 });
 
@@ -221,9 +278,6 @@ activities.addEventListener('change', (e) => {
 
 // In the payment info section, payment sections are displayed depending on which
 // payment method is selected.
-const creditCardDiv = document.getElementById('credit-card');
-const paypalDiv = document.getElementById('paypal');
-const bitcoinDiv = document.getElementById('bitcoin');
 paypalDiv.hidden = true;
 bitcoinDiv.hidden = true;
 payment.addEventListener('change', (e) => {
